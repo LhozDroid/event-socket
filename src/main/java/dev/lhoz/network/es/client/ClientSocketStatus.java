@@ -1,7 +1,7 @@
 /**
  *
  */
-package dev.lhoz.socket.es.client;
+package dev.lhoz.network.es.client;
 
 /**
  * @author Lhoz

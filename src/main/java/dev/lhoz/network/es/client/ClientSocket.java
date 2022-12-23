@@ -1,23 +1,21 @@
 /**
  *
  */
-package dev.lhoz.socket.es.client;
+package dev.lhoz.network.es.client;
 
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
 import dev.lhoz.resilence.retry.RetryBuilder;
-import dev.lhoz.socket.es.SocketOptions;
-import dev.lhoz.socket.es.SocketReader;
-import dev.lhoz.socket.es.SocketWriter;
-import dev.lhoz.socket.es.exception.SocketConnectionException;
 import lombok.extern.log4j.Log4j2;
 
 /**
@@ -26,13 +24,14 @@ import lombok.extern.log4j.Log4j2;
  */
 @Log4j2
 public class ClientSocket {
-	private final AtomicReference<ClientSocketStatus> status = new AtomicReference<>(ClientSocketStatus.DISCONNECTED);
+	protected final AtomicReference<ClientSocketStatus> status = new AtomicReference<>(ClientSocketStatus.DISCONNECTED);
+	private ExecutorService executor;
 
-	private Socket socket;
-	private SocketWriter writer;
-	private SocketReader reader;
+	protected Socket socket;
+	private ClientSocketWriter writer;
+	private ClientSocketReader reader;
 
-	protected final SocketOptions options = new SocketOptions();
+	protected final ClientSocketOptions options = new ClientSocketOptions();
 
 	private final ClientSocketObserver observer = new ClientSocketObserver();
 	private final List<String> queue = Collections.synchronizedList(new ArrayList<String>());
@@ -55,6 +54,13 @@ public class ClientSocket {
 	 */
 	public void clear() {
 		this.observer.clear();
+	}
+
+	/**
+	 * @return
+	 */
+	public String getAddress() {
+		return this.socket.getInetAddress().getHostAddress();
 	}
 
 	/**
@@ -84,7 +90,8 @@ public class ClientSocket {
 	 *
 	 */
 	public void start() {
-		if (ClientSocketStatus.DISCONNECTED.equals(this.status.get())) {
+		if (this.executor == null) {
+			this.executor = Executors.newSingleThreadExecutor();
 			Executors.newSingleThreadExecutor().execute(() -> {
 				try {
 					this.observer.notifyOnStart();
@@ -102,9 +109,21 @@ public class ClientSocket {
 	 */
 	public void stop() {
 		this.options.setAutoReconnect(false);
-		this.status.set(ClientSocketStatus.DISCONNECTED);
-		this.observer.notifyOnStop();
+
+		if (!ClientSocketStatus.DISCONNECTED.equals(this.status.get())) {
+			this.status.set(ClientSocketStatus.DISCONNECTED);
+			this.observer.notifyOnStop();
+		}
+
 		this.clear();
+
+		this.executor.shutdown();
+		try {
+			this.executor.awaitTermination(this.options.getTimeout(), TimeUnit.MILLISECONDS);
+		} catch (final Exception e) {
+			ClientSocket.LOG.debug(e.getLocalizedMessage(), e);
+		}
+		this.executor = null;
 	}
 
 	/**
@@ -122,7 +141,18 @@ public class ClientSocket {
 	 *
 	 */
 	private void connect() {
-		final AtomicReference<SocketConnectionException> exception = new AtomicReference<>();
+		if (ClientSocketStatus.DISCONNECTED.equals(this.status.get()) && this.socket == null) {
+			this.connectFull();
+		} else {
+			this.connectPartial();
+		}
+	}
+
+	/**
+	 * Attempts to connect by creating the connection itself
+	 */
+	private void connectFull() {
+		final AtomicReference<Exception> exception = new AtomicReference<>();
 
 		final RetryBuilder builder = new RetryBuilder()//
 				.withSleep(this.options.getTimeout())//
@@ -131,24 +161,16 @@ public class ClientSocket {
 						this.status.set(ClientSocketStatus.CONNECTING);
 						this.observer.notifyOnConnecting();
 
-						final String address = this.options.getAddress();
-						final int port = this.options.getPort();
+						this.createSocket();
+						this.socket.setSoTimeout(this.options.getTimeout());
 
-						final Socket socket = new Socket(address, port);
-						socket.setSoTimeout(this.options.getTimeout());
-
-						final SocketWriter writer = new SocketWriter(socket);
-						final SocketReader reader = new SocketReader(socket);
-
-						this.socket = socket;
-						this.writer = writer;
-						this.reader = reader;
+						this.createReaderWriter();
 
 						this.status.set(ClientSocketStatus.CONNECTED);
 						this.observer.notifyOnConnected();
 					} catch (final Exception e) {
 						ClientSocket.LOG.debug(e.getLocalizedMessage(), e);
-						exception.set(new SocketConnectionException("Unable to connect.", e));
+						exception.set(new Exception("Unable to connect.", e));
 						this.observer.notifyOnConnectionFailed();
 						throw new RuntimeException(e);
 					}
@@ -166,6 +188,69 @@ public class ClientSocket {
 			this.status.set(ClientSocketStatus.DISCONNECTED);
 			this.observer.notifyOnDisconnected();
 		}
+	}
+
+	/**
+	 * Attempts to create the reader and writer only
+	 */
+	private void connectPartial() {
+		final AtomicReference<Exception> exception = new AtomicReference<>();
+
+		final RetryBuilder builder = new RetryBuilder()//
+				.withSleep(this.options.getTimeout())//
+				.withMethod(() -> {
+					try {
+						this.options.setAddress(this.socket.getInetAddress().getHostAddress());
+						this.options.setPort(this.socket.getPort());
+
+						this.socket.setSoTimeout(this.options.getTimeout());
+
+						this.createReaderWriter();
+
+						this.status.set(ClientSocketStatus.CONNECTED);
+						this.observer.notifyOnConnected();
+					} catch (final Exception e) {
+						ClientSocket.LOG.debug(e.getLocalizedMessage(), e);
+						exception.set(new Exception("Unable to connect.", e));
+						this.observer.notifyOnConnectionFailed();
+						throw new RuntimeException(e);
+					}
+				});
+
+		if (!this.options.isAutoReconnect()) {
+			builder.withAttempts(3);
+		}
+
+		try {
+			builder.build().run();
+		} catch (final Exception e) {
+			ClientSocket.LOG.debug(e.getLocalizedMessage(), e);
+			ClientSocket.LOG.error(e.getLocalizedMessage());
+			this.status.set(ClientSocketStatus.DISCONNECTED);
+			this.observer.notifyOnDisconnected();
+		}
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	private void createReaderWriter() throws Exception {
+		final ClientSocketWriter writer = new ClientSocketWriter(this.socket);
+		final ClientSocketReader reader = new ClientSocketReader(this.socket);
+
+		this.writer = writer;
+		this.reader = reader;
+	}
+
+	/**
+	 * @throws Exception
+	 */
+	private void createSocket() throws Exception {
+		final String address = this.options.getAddress();
+		final int port = this.options.getPort();
+
+		final Socket socket = new Socket(address, port);
+		this.socket = socket;
 	}
 
 	/**
@@ -187,6 +272,8 @@ public class ClientSocket {
 		if (this.options.isAutoReconnect()) {
 			this.sleep();
 			this.process();
+		} else {
+			this.stop();
 		}
 	}
 
@@ -195,7 +282,7 @@ public class ClientSocket {
 	 */
 	private void read() {
 		if (ClientSocketStatus.CONNECTED.equals(this.status.get())) {
-			final AtomicReference<SocketConnectionException> exception = new AtomicReference<>();
+			final AtomicReference<Exception> exception = new AtomicReference<>();
 
 			final RetryBuilder builder = new RetryBuilder()//
 					.withSleep(this.options.getTimeout())//
@@ -208,7 +295,7 @@ public class ClientSocket {
 						} catch (final Exception e) {
 							ClientSocket.LOG.debug(e.getLocalizedMessage(), e);
 							ClientSocket.LOG.error(e.getLocalizedMessage());
-							exception.set(new SocketConnectionException("Disconnected from server.", e));
+							exception.set(new Exception("Disconnected from server.", e));
 							throw new RuntimeException(e);
 						}
 					});
@@ -244,7 +331,7 @@ public class ClientSocket {
 	 */
 	private void write() {
 		if (ClientSocketStatus.CONNECTED.equals(this.status.get())) {
-			final AtomicReference<SocketConnectionException> exception = new AtomicReference<>();
+			final AtomicReference<Exception> exception = new AtomicReference<>();
 
 			final RetryBuilder builder = new RetryBuilder()//
 					.withSleep(this.options.getTimeout())//
@@ -263,7 +350,7 @@ public class ClientSocket {
 								} catch (final Exception e) {
 									ClientSocket.LOG.debug(e.getLocalizedMessage(), e);
 									ClientSocket.LOG.error(e.getLocalizedMessage());
-									exception.set(new SocketConnectionException("Disconnected from server.", e));
+									exception.set(new Exception("Disconnected from server.", e));
 									throw new RuntimeException(e);
 								}
 							}

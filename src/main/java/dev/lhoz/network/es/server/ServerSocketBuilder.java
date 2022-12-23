@@ -1,41 +1,43 @@
 /**
  *
  */
-package dev.lhoz.socket.es.client;
+package dev.lhoz.network.es.server;
 
 /**
  * @author Lhoz
  *
  */
-public class ClientSocketBuilder extends ClientSocket {
+public class ServerSocketBuilder extends ServerSocket {
 	/**
 	 *
 	 */
-	public ClientSocketBuilder() {
+	public ServerSocketBuilder() {
 	}
 
 	/**
 	 * @return
 	 */
-	public ClientSocket build() {
+	public ServerSocket build() {
 		return this;
 	}
 
 	/**
-	 * @param address
+	 * @param autoReopen
 	 * @return
 	 */
-	public ClientSocketBuilder withAddress(final String address) {
-		this.options.setAddress(address);
+	public ServerSocketBuilder withAutoReopen(final boolean autoReopen) {
+		this.options.setAutoReopen(autoReopen);
 		return this;
 	}
 
 	/**
-	 * @param autoReconnect
+	 * @param clients
 	 * @return
 	 */
-	public ClientSocketBuilder withAutoReconnect(final boolean autoReconnect) {
-		this.options.setAutoReconnect(autoReconnect);
+	public ServerSocketBuilder withClients(final int clients) {
+		if (clients > 0) {
+			this.options.setClients(clients);
+		}
 		return this;
 	}
 
@@ -43,7 +45,7 @@ public class ClientSocketBuilder extends ClientSocket {
 	 * @param port
 	 * @return
 	 */
-	public ClientSocketBuilder withPort(final int port) {
+	public ServerSocketBuilder withPort(final int port) {
 		if (port >= 0 && port <= 65535) {
 			this.options.setPort(port);
 		}
@@ -54,7 +56,7 @@ public class ClientSocketBuilder extends ClientSocket {
 	 * @param readTries
 	 * @return
 	 */
-	public ClientSocketBuilder withReadTries(final int readTries) {
+	public ServerSocketBuilder withReadTries(final int readTries) {
 		if (readTries > 0) {
 			this.options.setReadTries(readTries);
 		}
@@ -65,7 +67,7 @@ public class ClientSocketBuilder extends ClientSocket {
 	 * @param timeout
 	 * @return
 	 */
-	public ClientSocketBuilder withTimeout(final int timeout) {
+	public ServerSocketBuilder withTimeout(final int timeout) {
 		if (timeout > 0) {
 			this.options.setTimeout(timeout);
 		}
@@ -76,7 +78,7 @@ public class ClientSocketBuilder extends ClientSocket {
 	 * @param writeTries
 	 * @return
 	 */
-	public ClientSocketBuilder withWriteTries(final int writeTries) {
+	public ServerSocketBuilder withWriteTries(final int writeTries) {
 		if (writeTries > 0) {
 			this.options.setWriteTries(writeTries);
 		}

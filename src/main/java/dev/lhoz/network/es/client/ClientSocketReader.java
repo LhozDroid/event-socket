@@ -1,7 +1,7 @@
 /**
  *
  */
-package dev.lhoz.socket.es;
+package dev.lhoz.network.es.client;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -18,7 +18,7 @@ import lombok.extern.log4j.Log4j2;
  *
  */
 @Log4j2
-public class SocketReader {
+public class ClientSocketReader {
 	private BufferedReader bufferedReader;
 	private InputStream inputStream;
 	private InputStreamReader inputStreamReader;
@@ -27,14 +27,14 @@ public class SocketReader {
 	 * @param socket
 	 * @throws Exception
 	 */
-	public SocketReader(final Socket socket) throws Exception {
+	public ClientSocketReader(final Socket socket) throws Exception {
 		try {
 			this.inputStream = socket.getInputStream();
 			this.inputStreamReader = new InputStreamReader(this.inputStream);
 			this.bufferedReader = new BufferedReader(this.inputStreamReader);
 		} catch (final Exception e) {
-			SocketReader.LOG.debug(e.getLocalizedMessage(), e);
-			SocketReader.LOG.error(e.getLocalizedMessage());
+			ClientSocketReader.LOG.debug(e.getLocalizedMessage(), e);
+			ClientSocketReader.LOG.error(e.getLocalizedMessage());
 			throw new Exception("Unable to create the socket reader. " + e.getLocalizedMessage(), e);
 		}
 	}
@@ -46,19 +46,19 @@ public class SocketReader {
 		try {
 			this.bufferedReader.close();
 		} catch (final Exception e) {
-			SocketReader.LOG.debug(e.getLocalizedMessage(), e);
+			ClientSocketReader.LOG.debug(e.getLocalizedMessage(), e);
 		}
 
 		try {
 			this.inputStreamReader.close();
 		} catch (final Exception e) {
-			SocketReader.LOG.debug(e.getLocalizedMessage(), e);
+			ClientSocketReader.LOG.debug(e.getLocalizedMessage(), e);
 		}
 
 		try {
 			this.bufferedReader.close();
 		} catch (final Exception e) {
-			SocketReader.LOG.debug(e.getLocalizedMessage(), e);
+			ClientSocketReader.LOG.debug(e.getLocalizedMessage(), e);
 		}
 	}
 
@@ -78,10 +78,10 @@ public class SocketReader {
 				data = StringUtils.trim(line);
 			}
 		} catch (final SocketTimeoutException e) {
-			SocketReader.LOG.debug(e.getLocalizedMessage(), e);
+			ClientSocketReader.LOG.debug(e.getLocalizedMessage(), e);
 		} catch (final Exception e) {
-			SocketReader.LOG.debug(e.getLocalizedMessage(), e);
-			SocketReader.LOG.error(e.getLocalizedMessage());
+			ClientSocketReader.LOG.debug(e.getLocalizedMessage(), e);
+			ClientSocketReader.LOG.error(e.getLocalizedMessage());
 			throw new Exception("Error reading data from socket. " + e.getLocalizedMessage(), e);
 		}
 
