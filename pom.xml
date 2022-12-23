@@ -1,23 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>dev.lhoz.socket</groupId>
 	<artifactId>event-socket</artifactId>
-	<version>22122011</version>
+	<version>1.0.0</version>
+	<packaging>jar</packaging>
 
 	<name>event-socket</name>
+	<description>Socket event-oriented basic library</description>
+	<url>https://github.com/LhozDroid/event-socket</url>
+
+	<licenses>
+		<license>
+			<name>MIT</name>
+			<url>https://opensource.org/licenses/MIT</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<scm>
+		<url>https://github.com/LhozDroid/event-socket.git</url>
+	</scm>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.source>11</maven.compiler.source>
 		<maven.compiler.target>11</maven.compiler.target>
 
-		<version.commons-lang3>3.12.0</version.commons-lang3>
-		<version.commons-io>2.11.0</version.commons-io>
-		<version.lombok>1.18.24</version.lombok>
-		<version.log4j>2.19.0</version.log4j>
+		<commons-lang3.version>3.12.0</commons-lang3.version>
+		<commons-io.version>2.11.0</commons-io.version>
+		<lombok.version>1.18.24</lombok.version>
+		<log4j.version>2.19.0</log4j.version>
+		<retry.version>1.0.0</retry.version>
 	</properties>
 
 	<dependencies>
@@ -25,7 +40,7 @@
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<version>${version.lombok}</version>
+			<version>${lombok.version}</version>
 			<scope>provided</scope>
 		</dependency>
 
@@ -33,26 +48,26 @@
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
-			<version>${version.commons-lang3}</version>
+			<version>${commons-lang3.version}</version>
 		</dependency>
 
 		<!-- Log4j2 -->
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-core</artifactId>
-			<version>${version.log4j}</version>
+			<version>${log4j.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-api</artifactId>
-			<version>${version.log4j}</version>
+			<version>${log4j.version}</version>
 		</dependency>
 
 		<!-- Resilence -->
 		<dependency>
 			<groupId>dev.lhoz.resilence</groupId>
 			<artifactId>retry</artifactId>
-			<version>22122015</version>
+			<version>${retry.version}</version>
 		</dependency>
 	</dependencies>
 </project>
