@@ -1,7 +1,7 @@
 /**
  *
  */
-package dev.lhoz.network.es.server;
+package com.github.lhoz.network.socket.server;
 
 import java.net.Socket;
 import java.util.Collections;
@@ -14,9 +14,10 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang3.StringUtils;
 
-import dev.lhoz.network.es.client.ClientSocket;
-import dev.lhoz.network.es.client.ClientSocketBuilder;
-import dev.lhoz.resilence.retry.RetryBuilder;
+import com.github.lhoz.network.socket.client.ClientSocket;
+import com.github.lhoz.network.socket.client.ClientSocketBuilder;
+import com.github.lhoz.resilence.retry.RetryBuilder;
+
 import lombok.extern.log4j.Log4j2;
 
 /**

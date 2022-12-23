@@ -1,7 +1,7 @@
 /**
  *
  */
-package dev.lhoz.network.es.server;
+package com.github.lhoz.network.socket.server;
 
 import java.util.Collections;
 import java.util.HashSet;

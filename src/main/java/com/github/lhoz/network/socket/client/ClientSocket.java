@@ -1,7 +1,7 @@
 /**
  *
  */
-package dev.lhoz.network.es.client;
+package com.github.lhoz.network.socket.client;
 
 import java.net.Socket;
 import java.util.ArrayList;
@@ -15,7 +15,8 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
-import dev.lhoz.resilence.retry.RetryBuilder;
+import com.github.lhoz.resilence.retry.RetryBuilder;
+
 import lombok.extern.log4j.Log4j2;
 
 /**

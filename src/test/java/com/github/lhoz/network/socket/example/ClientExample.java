@@ -1,10 +1,10 @@
 /**
  * 
  */
-package dev.lhoz.network.es.example;
+package com.github.lhoz.network.socket.example;
 
-import dev.lhoz.network.es.client.ClientSocket;
-import dev.lhoz.network.es.client.ClientSocketBuilder;
+import com.github.lhoz.network.socket.client.ClientSocket;
+import com.github.lhoz.network.socket.client.ClientSocketBuilder;
 
 /**
  * @author Lhoz

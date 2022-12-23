@@ -1,7 +1,7 @@
 /**
  *
  */
-package dev.lhoz.network.es.client;
+package com.github.lhoz.network.socket.client;
 
 import java.net.Socket;
 

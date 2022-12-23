@@ -1,9 +1,10 @@
 /**
  *
  */
-package dev.lhoz.network.es.example;
+package com.github.lhoz.network.socket.example;
 
-import dev.lhoz.network.es.server.ServerSocketListener;
+import com.github.lhoz.network.socket.server.ServerSocketListener;
+
 import lombok.extern.log4j.Log4j2;
 
 /**

@@ -1,10 +1,10 @@
 /**
  *
  */
-package dev.lhoz.network.es.example;
+package com.github.lhoz.network.socket.example;
 
-import dev.lhoz.network.es.server.ServerSocket;
-import dev.lhoz.network.es.server.ServerSocketBuilder;
+import com.github.lhoz.network.socket.server.ServerSocket;
+import com.github.lhoz.network.socket.server.ServerSocketBuilder;
 
 /**
  * @author Lhoz
